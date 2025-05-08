@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript Chess Platform</title>
+  <!-- chessboard.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.css">
+  <style>
+    #board {
+      width: 400px;
+      margin: 20px auto;
+    }
+    #status {
+      text-align: center;
+      font-family: sans-serif;
+      margin-top: 10px;
+    }
+    </style>
+  <!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+          integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+          crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="board"></div>
+  <div id="status">White to move</div>
+
+  <!-- Include chess.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.js"></script>
+  <!-- Include chessboard.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.js"></script>
+
+  <script>
+    // Initialize a new game using chess.js
+    //rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    var game = new Chess('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
+    // Function to update the game status text
+    function updateStatus() {
+      var status = '';
+      var moveColor = game.turn() === 'w' ? 'White' : 'Black';
+
+
+      // checkmate?
+      if (game.in_checkmate()) {
+        status = 'Game over, ' + moveColor + ' is in checkmate.';
+      }
+      // draw?
+      else if (game.in_draw()) {
+        status = 'Game over, drawn position';
+      }
+      // game still on
+      else {
+        status = moveColor + ' to move';
+        if (game.in_check()) {
+          status += ', ' + moveColor + ' is in check';
+        }
+      }
+      document.getElementById('status').innerHTML = status;
+    }
+
+    // Called when a piece drag starts
+    function onDragStart(source, piece, position, orientation) {
+      // Do not pick up pieces if the game is over.
+      if (game.game_over()) return false;
+
+      // Only allow moving the piece if it matches the turn.
+      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+    }
+
+    // Called when a piece is dropped
+    function onDrop(source, target) {
+      // Try making the move
+      var move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' // Always promote to a queen for simplicity
+      });
+
+      // Illegal move: snap piece back
+      if (move === null) return 'snapback';
+
+      updateStatus();
+      board.position(game.fen());
+
+      fetch('https://chessbotserver.local:5000/move', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'  // Set the content type to JSON
+        },
+        body: JSON.stringify(game.fen())
+      }).then(function(response) {
+        return response.json();
+      }).then(function(response) {
+        console.log(response);
+
+        setTimeout(() => {
+              console.dir(game.turn());
+              game.load(response.message);
+              board.position(game.fen());
+        }, 0);
+
+      });
+
+
+    }
+
+    // Ensure pieces snap to squares after move (needed for castling, en passant, etc.)
+    function onSnapEnd() {
+      board.position(game.fen());
+    }
+
+    // Configure the chessboard.js settings
+    var config = {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd
+    };
+
+    // Initialize the board inside the "board" div
+    var board = Chessboard('board', config);
+    board.position(game.fen());
+
+    // Update the initial status text
+    updateStatus();
+  </script>
+</body>
+</html>

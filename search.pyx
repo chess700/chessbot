@@ -1,6 +1,5 @@
 import chess
 import random
-from copy import deepcopy
 import evaluation
 import sys
 from chess import Board

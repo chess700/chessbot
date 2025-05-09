@@ -36,23 +36,18 @@ def engine(board,depth):
                         0.65,0.70,0.85,1.00,1.00,0.85,0.70,0.65,
                         0.40,0.45,0.50,0.60,0.60,0.50,0.45,0.40]
 
-    middlegamekingindex=[0.9,1.0,0.8,0.5,0.5,0.8,1.0,0.9,
-                         0.8,0.8,0.7,0.0,0.0,0.7,0.8,0.8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-
-
-
 
     for squareindex,square in enumerate(chess.SQUARES):
         piece = board.piece_at(square)
         if piece is not None and piece.piece_type == chess.KNIGHT and piece.color == chess.WHITE:
-            whitepoint+=knightsquareindex[squareindex]+2.5
+            whitepoint+=(knightsquareindex[squareindex]/2)+3.5
             #whitepoint += 3
     knightsquareindex.reverse()
     for squareindex,square in enumerate(chess.SQUARES):
         piece = board.piece_at(square)
         if piece is not None and piece.piece_type == chess.KNIGHT and piece.color == chess.BLACK:
             #blackpoint+=3
-            blackpoint +=knightsquareindex[squareindex]+2.5
+            blackpoint+=(knightsquareindex[squareindex]/2)+3.5
 
 
 
@@ -94,13 +89,15 @@ def engine(board,depth):
         for squareindex, square in enumerate(chess.SQUARES):
             piece = board.piece_at(square)
             if piece is not None and piece.piece_type == chess.KING and piece.color == chess.WHITE:
-                whitepoint += middlegamekingindex[squareindex-1]/2
+                whitepoint += (7-chess.square_rank(square))/2
+                break
 
-        middlegamekingindex.reverse()
+
         for squareindex, square in enumerate(chess.SQUARES):
             piece = board.piece_at(square)
             if piece is not None and piece.piece_type == chess.KING and piece.color == chess.BLACK:
-                blackpoint += middlegamekingindex[squareindex-1]/2
+                blackpoint += chess.square_rank(square)-7/2
+                break
     # checksforpawnonopenfile = 0
     # for squareindex, square in enumerate(chess.SQUARES):
     #     piece = board.piece_at(square)

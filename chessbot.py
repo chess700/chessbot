@@ -3,15 +3,20 @@
 # python setup.py build_ext --inplace --verbose
 
 import sys
+
+from Lib.re import search
+
 sys.path.insert(0, "./")
 import cython
 import subprocess
+
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import chess
 
-import search
+cimport search
+
 app = Flask(__name__)
 # Enable CORS for specific origins
 CORS(app, resources={r"/*": {"origins": "https://chessbot.local"}})
